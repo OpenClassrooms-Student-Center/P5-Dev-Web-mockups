@@ -256,6 +256,12 @@ orderButton.addEventListener("click", (e) => formValidation(e));
 async function formValidation(e) {
   e.preventDefault();
 
+  if (firstNameInvalid()) return;
+  if (lastNameInvalid()) return;
+  if (addressInvalid()) return;
+  if (cityInvalid()) return;
+  if (emailInvalid()) return;
+
   const array = requestArray();
 
   let resultPost = await fetch("http://localhost:3000/api/products/order", {
@@ -272,6 +278,88 @@ async function formValidation(e) {
       window.location.href = "./confirmation.html" + "?orderId=" + orderId;
     })
     .catch((err) => console.error(err));
+}
+
+function firstNameInvalid() {
+  const firstName = document.querySelector("#firstName");
+  const firstNameErrorMsg = document.querySelector("#firstNameErrorMsg");
+  const firstNameRegex = new RegExp("([A-Z][a-z]*)([\\s\\'-][A-Z][a-z]*)*");
+  if (firstNameRegex.test(firstName.value)) {
+    firstNameErrorMsg.innerHTML = "";
+    return false;
+  } else {
+    firstNameErrorMsg.innerHTML =
+      "Le prénom n'est pas valide,<br/>Veuillez renseigner ce champs";
+    return true;
+  }
+}
+
+// Fonction validation nom avec regex
+
+function lastNameInvalid() {
+  const lastName = document.querySelector("#lastName");
+  const lastNameErrorMsg = document.querySelector("#lastNameErrorMsg");
+  const lastNameRegex = new RegExp("([A-Z][a-z]*)([\\s\\'-][A-Z][a-z]*)*");
+  if (lastNameRegex.test(lastName.value)) {
+    lastNameErrorMsg.innerHTML = "";
+    return false;
+  } else {
+    lastNameErrorMsg.innerHTML =
+      "Le nom n'est pas valide,<br/>Veuillez renseigner ce champs";
+    return true;
+  }
+}
+
+// Fonction validation adresse avec regex
+
+function addressInvalid() {
+  const address = document.querySelector("#address");
+  const addressErrorMsg = document.querySelector("#addressErrorMsg");
+  const addressRegex = new RegExp(
+    "^[0-9]{1,3}(?:(?:[,. ]){1}[-a-zA-Zàâäéèêëïîôöùûüç]+)+"
+  );
+  if (addressRegex.test(address.value)) {
+    addressErrorMsg.innerHTML = "";
+    return false;
+  } else {
+    addressErrorMsg.innerHTML =
+      "L'adresse n'est pas valide,<br/>Veuillez renseigner ce champs";
+    return true;
+  }
+}
+
+// Fonction validation ville avec regex
+
+function cityInvalid() {
+  const city = document.querySelector("#city");
+  const cityErrorMsg = document.querySelector("#cityErrorMsg");
+  const cityRegex = new RegExp("^[a-zA-Zs]+$");
+  if (cityRegex.test(city.value)) {
+    cityErrorMsg.innerHTML = "";
+    return false;
+  } else {
+    cityErrorMsg.innerHTML =
+      "La ville n'est pas valide,<br/>Veuillez renseigner ce champs";
+    return true;
+  }
+}
+
+// Fonction validation email avec regex
+
+function emailInvalid() {
+  const email = document.querySelector("#email");
+  const emailErrorMsg = document.querySelector("#emailErrorMsg");
+  const emailRegex = new RegExp(
+    "^[a-zA-Z0-9.-_]+[@]{1}[a-zA-Z0-9.-_]+[.]{1}[a-z]{2,10}$"
+  );
+  if (emailRegex.test(email.value)) {
+    emailErrorMsg.innerHTML = "";
+    return false;
+  } else {
+    emailErrorMsg.innerHTML =
+      "L'email n'est pas valide,<br/>Veuillez renseigner ce champs";
+    return true;
+  }
 }
 
 // Fonction array demande de formulaire + id produits
