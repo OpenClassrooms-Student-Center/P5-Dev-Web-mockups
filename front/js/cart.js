@@ -219,5 +219,28 @@ function removeProductFromCart(e, cartContentSettingsDelete, item) {
   }
 }
 
+// Fonction total quantité
 
+function cartTotalQuantity() {
+  total = 0;
+  const totalQuantity = document.getElementsByClassName("itemQuantity");
+  let totalCartQuantity = totalQuantity.length;
+  for (let i = 0; i < totalCartQuantity; ++i) {
+    total += totalQuantity[i].valueAsNumber;
+  }
+  const totalProductCartQuantity = document.querySelector("#totalQuantity");
+  totalProductCartQuantity.innerHTML = total;
+}
 
+// Fonction total prix
+
+function cartTotalPrice(item) {
+  totalPrice = 0;
+  const totalQuantity = document.getElementsByClassName("itemQuantity");
+  let totalCartQuantity = totalQuantity.length;
+  for (let i = 0; i < totalCartQuantity; ++i) {
+    totalPrice += totalQuantity[i].valueAsNumber * item[i].price;
+  }
+  const totalCartPrice = document.querySelector("#totalPrice");
+  totalCartPrice.innerHTML = totalPrice;
+}
