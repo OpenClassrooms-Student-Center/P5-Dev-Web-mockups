@@ -30,7 +30,7 @@ function treatmentProducts(product) {
   }
 }
 
-// Fonction insertion de l'élément "a"
+// Fonction insertion de l'élément "a", lien vers page product avec id produit
 
 function treatmentBeacon(_id) {
   const productBeacon = document.createElement("a");
@@ -45,7 +45,7 @@ function treatmentSelectorChildren(productBeacon, productArticle) {
   items.appendChild(productArticle);
 }
 
-// Fonction insertion de l'élément "img" et des images
+// Fonction insertion de l'élément "img" et des images et des altTxt
 
 function treatmentImg(imageUrl, altTxt) {
   const productImg = document.createElement("img");

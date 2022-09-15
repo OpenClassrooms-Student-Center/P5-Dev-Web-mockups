@@ -28,7 +28,7 @@ async function treatmentItemImg() {
 }
 treatmentItemImg();
 
-// Fonction traitement des données de l'article
+// Fonction insertion des éléments: nom, prix, description
 
 async function treatmentItemData() {
   let resultItemData = await requestItem().then((product) => {
@@ -64,7 +64,9 @@ if (buttonAddToCart != null) {
 
 // Fonction évènement click bouton ajouter au panier
 
-async function eventClick() {
+async function eventClick(e) {
+  e.preventDefault();
+
   const itemColors = await document.querySelector("#colors").value;
   const itemQuantity = await document.querySelector("#quantity").value;
 
@@ -73,7 +75,8 @@ async function eventClick() {
   linkCart();
 }
 
-// Fonction validation choix couleurs et quantité
+/* Fonction invalidation alerte message si choix couleurs
+   non définis ou si quantité nul ou plus de cent articles */
 
 function cartInvalid(itemColors, itemQuantity) {
   if (
@@ -93,7 +96,9 @@ function cartInvalid(itemColors, itemQuantity) {
 
 let recordCartLocalStorage = JSON.parse(localStorage.getItem("cart"));
 
-// fonction enregistrement des données des produits dans localStorage
+/* fonction enregistrement des données des produits,
+   choix quantité et additionnement quantité si même id
+   et couleur dans le localstorage */
 
 function localStorageCart(itemColors, itemQuantity) {
   const data = {
