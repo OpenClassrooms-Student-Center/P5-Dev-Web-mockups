@@ -244,3 +244,67 @@ function cartTotalPrice(item) {
   const totalCartPrice = document.querySelector("#totalPrice");
   totalCartPrice.innerHTML = totalPrice;
 }
+
+// Ecoute de l'évènement au click bouton commander
+
+const orderButton = document.querySelector("#order");
+orderButton.addEventListener("click", (e) => formValidation(e));
+
+/* Fonction évènement requête POST envoi demande de formulaire,
+   id produits et lien vers page confirmation avec l'orderId */
+
+async function formValidation(e) {
+  e.preventDefault();
+
+  const array = requestArray();
+
+  let resultPost = await fetch("http://localhost:3000/api/products/order", {
+    method: "POST",
+    body: JSON.stringify(array),
+    headers: {
+      "Content-Type": "application/json",
+    },
+  })
+    .then((res) => res.json())
+    .then((data) => {
+      const orderId = data.orderId;
+      console.log(data);
+      window.location.href = "./confirmation.html" + "?orderId=" + orderId;
+    })
+    .catch((err) => console.error(err));
+}
+
+// Fonction array demande de formulaire + id produits
+
+function requestArray() {
+  const form = document.querySelector(".cart__order__form");
+  const firstName = form.elements.firstName.value;
+  const lastName = form.elements.lastName.value;
+  const address = form.elements.address.value;
+  const city = form.elements.city.value;
+  const email = form.elements.email.value;
+
+  const array = {
+    contact: {
+      firstName: firstName,
+      lastName: lastName,
+      address: address,
+      city: city,
+      email: email,
+    },
+    products: getIdLocalStorage(),
+  };
+  return array;
+}
+
+// Fonction récupération du localstorage des id produits
+
+function getIdLocalStorage() {
+  const idLocalStorage = JSON.parse(localStorage.getItem("cart"));
+  cart.push(idLocalStorage);
+  let idProducts = [];
+  for (let i = 0; i < idLocalStorage.length; i++) {
+    idProducts.push(idLocalStorage[i].id);
+  }
+  return idProducts;
+}
