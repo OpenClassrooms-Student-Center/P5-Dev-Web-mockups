@@ -1,42 +1,58 @@
+// Fonction requête get récuperation des données des articles sur l'api
+
+async function requestApi() {
+  let res = await fetch("http://localhost:3000/api/products");
+  return res.json();
+}
+
 const cart = [];
+const api = [];
 
 treatmentDataLocalStorage();
 
 cart.forEach((item) => treatmentDataCart(item));
+api.forEach((product) => treatmentDataCart(product));
 
 // Fonction récupération des données des produits du localstorage
 
 function treatmentDataLocalStorage() {
   const item = JSON.parse(localStorage.getItem("cart"));
+
   cart.push(item);
 }
 
-// Fonction traitement des données des produits du localstorage
+// Fonction traitement des données des produits du localstorage et de l"api
 
-function treatmentDataCart(item) {
-  if (!item) {
-    const titleCart = document.querySelector("h1");
-    const sectionCart = document.querySelector(".cart");
-    titleCart.innerHTML = "Votre panier est vide !";
-    sectionCart.style.display = "none";
-  } else {
-    for (i = 0; i < item.length; i++) {
-      const cartItem = treatmentCartItem(item);
-
-      const cartDivImg = treatmentCartImg(item);
-      cartItem.appendChild(cartDivImg);
-
-      const cartItemContent = treatmentCartContentDescription(item);
-      cartItem.appendChild(cartItemContent);
-
-      const cartItemContentSettings = treatmentCartContentSettings(item);
-      cartItem.appendChild(cartItemContentSettings);
-      cartArticle(cartItem);
-
-      cartTotalQuantity();
-      cartTotalPrice(item);
+async function treatmentDataCart(item) {
+  let resultApi = await requestApi().then((product) => {
+    for (i = 0; i < product.length; i++) {
+      api.push(product);
     }
-  }
+    for (i = 0; i < item.length; i++) {
+      const idLS = item[i].id;
+
+      if (product) {
+        let kanap = product.filter((el) => el._id === idLS);
+
+        const cartItem = treatmentCartItem(item);
+
+        const cartDivImg = treatmentCartImg(item, kanap);
+        cartItem.appendChild(cartDivImg);
+
+        const cartItemContent = treatmentCartContentDescription(item, kanap);
+        cartItem.appendChild(cartItemContent);
+
+        const cartItemContentSettings = treatmentCartContentSettings(item);
+        cartItem.appendChild(cartItemContentSettings);
+
+        cartArticle(cartItem);
+
+        cartTotalQuantity();
+
+        cartTotalPrice();
+      }
+    }
+  });
 }
 
 // Fonction insertion de l'id et de la couleur des produits
@@ -44,10 +60,8 @@ function treatmentDataCart(item) {
 function treatmentCartItem(item) {
   const cartItem = document.createElement("article");
   cartItem.classList.add("cart__item");
-
   cartItem.dataset.id = item[i].id;
   cartItem.dataset.color = item[i].color;
-  console.log(cartItem);
   return cartItem;
 }
 
@@ -59,25 +73,33 @@ function cartArticle(cartItem) {
 
 // Fonction insertion des images et des alttxt
 
-function treatmentCartImg(item) {
-  const cartDivImg = document.createElement("div");
-  cartDivImg.className = "cart__item__img";
+function treatmentCartImg(item, kanap) {
+  for (let i = 0; i < kanap.length; i++) {
+    const cartDivImg = document.createElement("div");
+    cartDivImg.className = "cart__item__img";
 
-  const cartImg = document.createElement("img");
-  cartDivImg.appendChild(cartImg);
-  cartImg.src = item[i].img;
-  cartImg.alt = item[i].alt;
-  cartDivImg.appendChild(cartImg);
-  return cartDivImg;
+    const cartImg = document.createElement("img");
+    cartDivImg.appendChild(cartImg);
+    cartImg.src = kanap[i].imageUrl;
+
+    cartImg.alt = kanap[i].altTxt;
+    cartDivImg.appendChild(cartImg);
+
+    return cartDivImg;
+  }
 }
 
 // Fonction création div
 
-function treatmentCartContent(item) {
+function treatmentCartContent(item, kanap) {
   const cartItemContent = document.createElement("div");
   cartItemContent.className = "cart__item__content";
 
-  const cartItemContentDescription = treatmentCartContentDescription(item);
+  const cartItemContentDescription = treatmentCartContentDescription(
+    item,
+    kanap
+  );
+
   const cartItemContentSettings = treatmentCartContentSettings(item);
 
   cartItemContent.appendChild(cartItemContentDescription);
@@ -88,7 +110,7 @@ function treatmentCartContent(item) {
 
 // Fonction insertion des descriptions des produits
 
-function treatmentCartContentDescription(item) {
+function treatmentCartContentDescription(item, kanap) {
   const cartItemContentDescription = document.createElement("div");
   cartItemContentDescription.className = "cart__item__content__description";
 
@@ -108,9 +130,13 @@ function treatmentCartContentDescription(item) {
   // Insertion des prix
 
   const cartPrice = document.createElement("p");
-  cartItemContentDescription.appendChild(cartPrice);
-  cartPrice.innerHTML = item[i].price + " € ";
-  return cartItemContentDescription;
+  cartColor.appendChild(cartPrice);
+  for (let i = 0; i < kanap.length; i++) {
+    cartPrice.innerHTML = kanap[i].price + " € ";
+    cartPrice.classList.add("value");
+    cartPrice.value = kanap[i].price;
+    return cartItemContentDescription;
+  }
 }
 
 // Fonction création div
@@ -138,7 +164,6 @@ function quantityContentSettings(cartItemContentSettings, item) {
   // Insertion bouton quantité: min 1, max 100
 
   const input = document.createElement("input");
-
   input.type = "number";
   input.classList.add("itemQuantity");
   input.name = "itemQuantity";
@@ -147,9 +172,10 @@ function quantityContentSettings(cartItemContentSettings, item) {
   input.value = item[i].quantity;
   input.dataset.id = item[i].id;
   input.dataset.color = item[i].color;
+
   // Ecoute de l'évènement input choix quantité
 
-  input.addEventListener("input", (e) => changeQuantity(e, input, item));
+  input.addEventListener("change", (e) => changeQuantity(e, input, item));
 
   cartContentSettingsQuantity.appendChild(input);
 }
@@ -159,19 +185,17 @@ function quantityContentSettings(cartItemContentSettings, item) {
 function changeQuantity(e, input, item) {
   e.preventDefault();
 
-  const quantity = input.value;
+  const quantity = Number(input.value);
   const idQuantity = input.dataset.id;
   const colorQuantity = input.dataset.color;
-
   const resultFind = item.find(
     (remove) => remove.id === idQuantity && remove.color === colorQuantity
   );
   resultFind.quantity = quantity;
+  localStorage.setItem("cart", JSON.stringify(item));
 
   cartTotalQuantity();
-  cartTotalPrice(item);
-
-  localStorage.setItem("cart", JSON.stringify(item));
+  cartTotalPrice();
 }
 
 /* Fonction création de l'élément "div", "p",
@@ -203,20 +227,27 @@ function cartSettingsDelete(cartItemContentSettings, item) {
 
 function removeProductFromCart(e, cartContentSettingsDelete, item) {
   e.preventDefault();
+
+  const id = cartContentSettingsDelete.dataset.id;
+  const color = cartContentSettingsDelete.dataset.color;
+
   let totalAddProductRemove = item.length;
   if (totalAddProductRemove == 1) {
     localStorage.removeItem("cart");
-    location.reload();
   } else {
-    const id = cartContentSettingsDelete.dataset.id;
-    const color = cartContentSettingsDelete.dataset.color;
     removeLocalStorage = item.findIndex(
       (product) => product.id === id && product.color === color
     );
     item.splice(removeLocalStorage, 1);
     localStorage.setItem("cart", JSON.stringify(item));
-    location.reload();
   }
+  const articleToDelete = document.querySelector(
+    `article[data-id="${id}"][data-color="${color}"]`
+  );
+  articleToDelete.remove();
+
+  cartTotalQuantity();
+  cartTotalPrice();
 }
 
 // Fonction total quantité
@@ -224,7 +255,9 @@ function removeProductFromCart(e, cartContentSettingsDelete, item) {
 function cartTotalQuantity() {
   total = 0;
   const totalQuantity = document.getElementsByClassName("itemQuantity");
+
   let totalCartQuantity = totalQuantity.length;
+
   for (let i = 0; i < totalCartQuantity; ++i) {
     total += totalQuantity[i].valueAsNumber;
   }
@@ -234,51 +267,22 @@ function cartTotalQuantity() {
 
 // Fonction total prix
 
-function cartTotalPrice(item) {
-  totalPrice = 0;
+function cartTotalPrice() {
+  const price = document.getElementsByClassName("value");
+
+  total = 0;
   const totalQuantity = document.getElementsByClassName("itemQuantity");
+
   let totalCartQuantity = totalQuantity.length;
+
   for (let i = 0; i < totalCartQuantity; ++i) {
-    totalPrice += totalQuantity[i].valueAsNumber * item[i].price;
+    total += totalQuantity[i].valueAsNumber * price[i].value;
   }
-  const totalCartPrice = document.querySelector("#totalPrice");
-  totalCartPrice.innerHTML = totalPrice;
+  const totalProductCartQuantity = document.querySelector("#totalPrice");
+  totalProductCartQuantity.innerHTML = total;
 }
 
-// Ecoute de l'évènement au click bouton commander
-
-const orderButton = document.querySelector("#order");
-orderButton.addEventListener("click", (e) => formValidation(e));
-
-/* Fonction évènement requête POST envoi demande de formulaire,
-   id produits et lien vers page confirmation avec l'orderId */
-
-async function formValidation(e) {
-  e.preventDefault();
-
-  if (firstNameInvalid()) return;
-  if (lastNameInvalid()) return;
-  if (addressInvalid()) return;
-  if (cityInvalid()) return;
-  if (emailInvalid()) return;
-
-  const array = requestArray();
-
-  let resultPost = await fetch("http://localhost:3000/api/products/order", {
-    method: "POST",
-    body: JSON.stringify(array),
-    headers: {
-      "Content-Type": "application/json",
-    },
-  })
-    .then((res) => res.json())
-    .then((data) => {
-      const orderId = data.orderId;
-      console.log(data);
-      window.location.href = "./confirmation.html" + "?orderId=" + orderId;
-    })
-    .catch((err) => console.error(err));
-}
+// Fonction validation prénom avec regex
 
 function firstNameInvalid() {
   const firstName = document.querySelector("#firstName");
@@ -360,6 +364,69 @@ function emailInvalid() {
       "L'email n'est pas valide,<br/>Veuillez renseigner ce champs";
     return true;
   }
+}
+
+// Fonction rembourrage gauche des éléments du formulaire
+
+function paddingForm() {
+  const formInput = document.querySelector(".cart__order__form");
+  const inputs = formInput.querySelectorAll("input");
+  inputs.forEach((input) => {
+    input.style.paddingLeft = "10px";
+  });
+}
+paddingForm();
+
+// Fonction alerte message si quantité non défini entre un et cent article(s)
+
+function cartConfirmation(itemCart) {
+  for (let i = 0; i < itemCart.length; i++) {
+    if (
+      itemCart[i].quantity == null ||
+      itemCart[i].quantity == 0 ||
+      itemCart[i].quantity > 100
+    ) {
+      alert("Veuillez sélectionner la quantité entre un et cent article(s)");
+      return true;
+    }
+  }
+}
+
+// Ecoute de l'évènement au click bouton commander
+
+const orderButton = document.querySelector("#order");
+orderButton.addEventListener("click", (e) => formValidation(e));
+
+/* Fonction évènement requête POST envoi demande de formulaire,
+   id produits et lien vers page confirmation avec l'orderId */
+
+async function formValidation(e) {
+  e.preventDefault();
+
+  const itemCart = JSON.parse(localStorage.getItem("cart"));
+
+  if (cartConfirmation(itemCart)) return;
+  if (firstNameInvalid()) return;
+  if (lastNameInvalid()) return;
+  if (addressInvalid()) return;
+  if (cityInvalid()) return;
+  if (emailInvalid()) return;
+
+  const array = requestArray();
+
+  let resultPost = await fetch("http://localhost:3000/api/products/order", {
+    method: "POST",
+    body: JSON.stringify(array),
+    headers: {
+      "Content-Type": "application/json",
+    },
+  })
+    .then((res) => res.json())
+    .then((data) => {
+      const orderId = data.orderId;
+      window.location.href = "./confirmation.html" + "?orderId=" + orderId;
+    })
+    .catch((err) => console.error(err));
 }
 
 // Fonction array demande de formulaire + id produits

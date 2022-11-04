@@ -13,7 +13,6 @@ async function requestItem() {
 
 const elementImg = document.createElement("img");
 const itemTitle = document.querySelector("#title");
-const itemPrice = document.querySelector("#price");
 const itemDescription = document.querySelector("#description");
 
 // Fonction insertion de l'élément "img" et de l'image
@@ -32,6 +31,7 @@ treatmentItemImg();
 
 async function treatmentItemData() {
   let resultItemData = await requestItem().then((product) => {
+    const itemPrice = document.querySelector("#price");
     itemTitle.innerHTML = product.name;
     itemPrice.innerHTML = product.price;
     itemDescription.innerHTML = product.description;
@@ -105,21 +105,17 @@ function localStorageCart(itemColors, itemQuantity) {
     id: idItem,
     color: itemColors,
     quantity: Number(itemQuantity),
-    price: Number(itemPrice.textContent),
-    name: itemTitle.textContent,
-    description: itemDescription.textContent,
-    alt: elementImg.alt,
-    img: elementImg.src,
-  };
+    name: itemTitle.textContent
+    };
 
   if (recordCartLocalStorage) {
     let color = itemColors;
     let quantity = itemQuantity;
-    const resultFind = recordCartLocalStorage.find(
-      (el) => el.id === idItem && el.color === color
+    let resultFind = recordCartLocalStorage.find(
+      (diff) => diff.id === idItem && diff.color === color
     );
     if (resultFind) {
-      let newQuantity = parseInt(quantity) + parseInt(resultFind.quantity);
+      const newQuantity = parseInt(quantity) + parseInt(resultFind.quantity);
       resultFind.quantity = newQuantity;
       localStorage.setItem("cart", JSON.stringify(recordCartLocalStorage));
     } else {
